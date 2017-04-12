@@ -89,7 +89,7 @@ class Window extends JFrame implements ActionListener{
     }
 
     private Color createColorPicker(){
-        Color c;
+        Color c=Color.BLACK;
         JColorChooser chooser = new JColorChooser();
         // JPanel chooserColor = new JPanel();
         // JLabel color = new JLabel(" DUPA ");
@@ -101,13 +101,19 @@ class Window extends JFrame implements ActionListener{
         // info.setForeground(Color.BLUE);
         AbstractColorChooserPanel[] panels = chooser.getChooserPanels();
 
+        ActionListener setColor = new ActionListener() {
+          public void actionPerformed(ActionEvent actionEvent) {
+            c = chooser.getColor();
+          }
+        };
+
         for (AbstractColorChooserPanel accp : panels) {
             if(!accp.getDisplayName().equals("RGB")) {
                 chooser.removeChooserPanel(accp);
             }
         }
-        c=Color.BLACK;
-        JColorChooser.createDialog(null, "Dialog Title", false, chooser, new ColorPickerListener(c), null).setVisible(true);
+
+        JColorChooser.createDialog(null, "Dialog Title", false, chooser, setColor , null).setVisible(true);
         return c;
     }
 
@@ -150,18 +156,6 @@ class Window extends JFrame implements ActionListener{
             color.setBackground(rgb);
             createColorPicker();
         }
-    }
-}
-
-class ColorPickerListener implements ActionListener{
-    private Color color;
-
-    public ColorPickerListener(Color c){
-        color = c;
-    }
-
-    public void actionPerformed(ActionEvent actionEvent) {
-      color = chooser.getColor();
     }
 }
 

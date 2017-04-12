@@ -110,6 +110,19 @@ class Window extends JFrame implements ActionListener{
     }
 }
 
+class WindowInfo extends JFrame{
+    public WindowInfo(){
+        super("Informacje");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(300,200);
+        setLayout(new BorderLayout(1,0));
+
+        add(new JLabel("<html><center>Prosty program do edycji grafiki.<br/>$copy; Maciej Stosio</center></html>"));
+
+        setVisible(true);
+    }
+}
+
 class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
     private Graphics2D g2d;
     private int x, y;

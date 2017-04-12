@@ -31,7 +31,6 @@ class Window extends JFrame implements ActionListener{
     JPanel canvas;
     JButton info,rectangle,circle,polygon;
     public static Mode mode;
-    public static ArrayList<Point> points = new ArrayList<Point>();
     public Window(){
         super("Paint");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -112,10 +111,10 @@ class Window extends JFrame implements ActionListener{
 }
 
 class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
-    Graphics2D g2d;
-    Shape preview;
+    private Graphics2D g2d;
     private int x, y;
-    ArrayList<Shape> shapes = new ArrayList<Shape>();
+    private ArrayList<Shape> shapes = new ArrayList<Shape>();
+    private ArrayList<Point> points= new ArrayList<Point>();
 
     CanvasPanel(){
         setBackground(Color.WHITE);
@@ -125,6 +124,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
 
     @Override
     protected void paintComponent(Graphics g) {
+        Shape preview;
         super.paintComponent(g);
         g2d = (Graphics2D) g;
         g2d.setColor(Color.WHITE);
@@ -133,44 +133,49 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
 
         for(Shape item: shapes) item.draw(g2d);
 
-        if(Window.mode==Mode.RECTANGLE){
-            preview = new Rectangle(x,y,x2,y2);
-            preview.draw(g2d);
-        }else if(Window.mode==Mode.CIRCLE){
-            preview = new Circle(x,y,x2,y2);
-            preview.draw(g2d);
+        if(Window.mode==Mode.RECTANGLE && points.size()>0){
+            preview = new Rectangle(points);
+            preview.preview(g2d,x,y);
+        }else if(Window.mode==Mode.CIRCLE && points.size()>0){
+            preview = new Circle(points);
+            preview.preview(g2d,x,y);
         }else if(Window.mode==Mode.POLYGON){
-            preview = new Polygon(Window.points);
+            preview = new Polygon(points);
             preview.preview(g2d,x,y);
         }
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        // if(Window.mode==Mode.RECTANGLE){
-        //     points.add((int) e.getX(),(int) e.getY())
-        // }else if(Window.mode==Mode.CIRCLE){
-        //     points.add((int) e.getX(),(int) e.getY())
-        // }
+        if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
+            x= (int)e.getX();
+            y= (int)e.getY();
+        }
         repaint();
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        x=(int) e.getX;
-        y=(int) e.getY;
+        if(Window.mode==Mode.POLYGON){
+            x= (int)e.getX();
+            y= (int)e.getY();
+        }
         repaint();
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         if(Window.mode==Mode.POLYGON){
-            Window.points.add((int) e.getX(),(int) e.getY())
+            points.add(new Point((int)e.getX(), (int)e.getY()));
+            if(e.getClickCount() == 2 && !e.isConsumed()) {
+                e.consume();
+                shapes.add(new Polygon(points));
+                points.clear();
+            }
+            x= (int)e.getX();
+            y= (int)e.getY();
         }
-        // if(e.getClickCount() == 2 && !e.isConsumed()) {
-        //     e.consume();
-        //     System.out.println("Double Click");
-        // }
+        repaint();
     }
 
     @Override
@@ -181,22 +186,25 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
 
     @Override
     public void mousePressed(MouseEvent e) {
-        // x = e.getX();
-        // y = e.getY();
-        // x2=x;
-        // y2=y;
+        if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
+            points.add(new Point((int)e.getX(), (int)e.getY()));
+            x= (int)e.getX();
+            y= (int)e.getY();
+        }
         repaint();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        // if(Window.mode==Mode.RECTANGLE){
-        //     shapes.add(new Rectangle(points));
-        //     points.clear();
-        // }else if(Window.mode==Mode.CIRCLE){
-        //     shapes.add(new Circle(points));
-        //     points.clear();
-        // }
+        if(Window.mode==Mode.RECTANGLE){
+            points.add(new Point((int)e.getX(), (int)e.getY()));
+            shapes.add(new Rectangle(points));
+            points.clear();
+        }else if(Window.mode==Mode.CIRCLE){
+            points.add(new Point((int)e.getX(), (int)e.getY()));
+            shapes.add(new Circle(points));
+            points.clear();
+        }
         repaint();
     }
 }
@@ -206,20 +214,25 @@ enum Mode{
 }
 
 abstract class Shape{
-    ArrayList<Point> points = new ArrayList<Point>();
+    ArrayList<Point> points;
 
     public Shape(ArrayList<Point> p){
-        points=p;
+        points=new ArrayList<Point>(p);
     }
 
-    public void add(Point point){
-        points.add(point);
+    public void add(int x, int y){
+        points.add(new Point(x,y));
     }
-
+    //
     public abstract void draw(Graphics2D g2d);
+    public abstract void preview(Graphics2D g2d, int x, int y);
 }
 
 class Rectangle extends Shape{
+    public Rectangle(ArrayList<Point> p){
+        super(p);
+    }
+
     public void draw(Graphics2D g2d){
         g2d.setColor(Color.BLACK);
         g2d.fillRect((int) Math.min(points.get(0).getX(),points.get(1).getX()),
@@ -228,9 +241,14 @@ class Rectangle extends Shape{
                      (int) Math.abs(points.get(1).getY()-points.get(0).getY()));
     }
 
-    public void preview(Graphics g2d,int x, int y){
+    public void preview(Graphics2D g2d, int x, int y){
+        Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 3, 1 }, 0);
+
         add(x,y);
-        g2d.fillRect((int) Math.min(points.get(0).getX(),points.get(1).getX()),
+
+        g2d.setColor(Color.BLUE);
+        g2d.setStroke(stroke);
+        g2d.drawRect((int) Math.min(points.get(0).getX(),points.get(1).getX()),
                      (int) Math.min(points.get(0).getY(),points.get(1).getY()),
                      (int) Math.abs(points.get(1).getX()-points.get(0).getX()),
                      (int) Math.abs(points.get(1).getY()-points.get(0).getY()));
@@ -238,6 +256,10 @@ class Rectangle extends Shape{
 }
 
 class Circle extends Shape{
+    public Circle(ArrayList<Point> p){
+        super(p);
+    }
+
     public void draw(Graphics2D g2d){
         g2d.setColor(Color.BLACK);
         g2d.fillOval((int) Math.min(points.get(0).getX(),points.get(1).getX()),
@@ -246,9 +268,14 @@ class Circle extends Shape{
                      (int) Math.abs(points.get(1).getY()-points.get(0).getY()));
     }
 
-    public void preview(Graphics g2d,int x, int y){
+    public void preview(Graphics2D g2d, int x, int y){
+        Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 3, 1 }, 0);
+
         add(x,y);
-        g2d.fillRect((int) Math.min(points.get(0).getX(),points.get(1).getX()),
+
+        g2d.setColor(Color.BLUE);
+        g2d.setStroke(stroke);
+        g2d.drawOval((int) Math.min(points.get(0).getX(),points.get(1).getX()),
                      (int) Math.min(points.get(0).getY(),points.get(1).getY()),
                      (int) Math.abs(points.get(1).getX()-points.get(0).getX()),
                      (int) Math.abs(points.get(1).getY()-points.get(0).getY()));
@@ -256,22 +283,33 @@ class Circle extends Shape{
 }
 
 class Polygon extends Shape{
+    public Polygon(ArrayList<Point> p){
+        super(p);
+    }
+
     public void draw(Graphics2D g2d){
-        g2d.setColor(Color.BLACK);
         GeneralPath path = new GeneralPath();
+
         path.moveTo(points.get(0).getX(),points.get(0).getY());
         for(int i=0; i<points.size(); i++) path.lineTo(points.get(i).getX(),points.get(i).getY());
         path.lineTo(points.get(0).getX(),points.get(0).getY());
         path.closePath();
-        g2d.draw(path);
+
+        g2d.setColor(Color.BLACK);
+        g2d.fill(path);
     }
 
-    public void preview(Graphics g2d,int x, int y){
-        add(x,y);
+    public void preview(Graphics2D g2d, int x, int y){
+        Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 3, 1 }, 0);
         GeneralPath path = new GeneralPath();
+
+        add(x,y);
+
         path.moveTo(points.get(0).getX(),points.get(0).getY());
         for(int i=0; i<points.size(); i++) path.lineTo(points.get(i).getX(),points.get(i).getY());
-        path.closePath();
+
+        g2d.setColor(Color.BLUE);
+        g2d.setStroke(stroke);
         g2d.draw(path);
     }
 }

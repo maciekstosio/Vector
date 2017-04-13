@@ -166,9 +166,14 @@ class Polygon extends Shape{
     }
 
     public boolean valid(){
-        boolean px=true,py=true;
+        boolean px=false,py=false;
         if(points.size()<3) return false;
-        for(Point in points)
-        return true;
+        Point start = points.get(0);
+        for(int i; i<points.size();i++){
+            if(points.get(i).getX()!=start.getX()) px=true;
+            if(points.get(i).getY()!=start.getY()) py=true;
+            if(px&&py) return true;
+        }
+        return px&&py;
     }
 }

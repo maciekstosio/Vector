@@ -13,17 +13,18 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 
 enum Mode{
-    RECTANGLE, CIRCLE, POLYGON;
+    RECTANGLE, CIRCLE, POLYGON, EDIT;
 }
 
 class Window extends JFrame implements ActionListener{
     public static Mode mode;
     public static Color rgb=Color.BLACK;
 
+    public Color c;
     private JFrame infoWindow;
     private JPanel toolbox;
     private JPanel canvas;
-    private JButton info,rectangle,circle,color,polygon;
+    private JButton info,rectangle,circle,color,polygon,edit;
 
     public Window(){
         super("Paint");
@@ -47,6 +48,10 @@ class Window extends JFrame implements ActionListener{
 
         toolbox.add(left);
         toolbox.add(right);
+
+        edit = new JButton("E");
+        edit.addActionListener(this);
+        left.add(edit);
 
         rectangle = new JButton("R");
         rectangle.addActionListener(this);
@@ -88,22 +93,14 @@ class Window extends JFrame implements ActionListener{
         infoWindow.add(new JLabel("<html><center style='margin-top: 30px;'>Prosty program do edycji grafiki.<br/>&copy; Maciej Stosio</center></html>"));
     }
 
-    private Color createColorPicker(){
-        Color c=Color.BLACK;
+    private void createColorPicker(){
         JColorChooser chooser = new JColorChooser();
-        // JPanel chooserColor = new JPanel();
-        // JLabel color = new JLabel(" DUPA ");
-        // chooserColor.setLayout(new GridLayout(1,1));
-        // chooserColor.add(color);
-        // color.setBackground(Color.BLUE);
-        // color.setOpaque(true);
-        // chooser.setPreviewPanel(chooserColor);
-        // info.setForeground(Color.BLUE);
         AbstractColorChooserPanel[] panels = chooser.getChooserPanels();
-
         ActionListener setColor = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
-            c = chooser.getColor();
+            rgb = chooser.getColor();
+            System.out.println(rgb);
+            color.setBackground(rgb);
           }
         };
 
@@ -114,7 +111,6 @@ class Window extends JFrame implements ActionListener{
         }
 
         JColorChooser.createDialog(null, "Dialog Title", false, chooser, setColor , null).setVisible(true);
-        return c;
     }
 
     @Override
@@ -124,6 +120,7 @@ class Window extends JFrame implements ActionListener{
         circle.setForeground(Color.BLACK);
         polygon.setForeground(Color.BLACK);
         rectangle.setForeground(Color.BLACK);
+        edit.setForeground(Color.BLACK);
 
         if(source==rectangle){
             if(Window.mode!=Mode.RECTANGLE){
@@ -149,11 +146,17 @@ class Window extends JFrame implements ActionListener{
                 polygon.setForeground(Color.BLACK);
                 Window.mode = null;
             }
+        }else if(source==edit){
+            if(Window.mode!=Mode.EDIT){
+                edit.setForeground(Color.BLUE);
+                Window.mode = Mode.EDIT;
+            }else{
+                edit.setForeground(Color.BLACK);
+                Window.mode = null;
+            }
         }else if(source==info){
             infoWindow.setVisible(true);
         }else if(source==color){
-            rgb = createColorPicker();
-            color.setBackground(rgb);
             createColorPicker();
         }
     }
@@ -178,7 +181,6 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
         g2d = (Graphics2D) g;
         g2d.setColor(Color.WHITE);
         g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
-        g2d.setColor(Color.BLACK);
 
         for(Shape item: shapes) item.draw(g2d);
 
@@ -215,14 +217,40 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
     @Override
     public void mouseClicked(MouseEvent e) {
         if(Window.mode==Mode.POLYGON){
+            Shape newShape;
             points.add(new Point((int)e.getX(), (int)e.getY()));
             if(e.getClickCount() == 2 && !e.isConsumed()) {
                 e.consume();
-                shapes.add(new Polygon(points));
+                newShape = new Polygon(points);
+                newShape.setColor(Window.rgb);
+                if(newShape.valid()){
+                    shapes.add(newShape);
+                }else{
+                    System.out.println("UNVALID");
+                }
                 points.clear();
             }
             x= (int)e.getX();
             y= (int)e.getY();
+        }else if(Window.mode==Mode.EDIT){
+            for(int i = shapes.size()-1; i>=0; i--){
+                System.out.println(i);
+                if(shapes.get(i).include((int)e.getX(),(int)e.getY())){
+                    if(shapes.get(i).isSelected()){
+                        System.out.println("UNSELECT");
+                        shapes.get(i).unselect();
+                    }else{
+                        System.out.println("SELECT");
+                        shapes.get(i).select();
+                    }
+                    for(int k = i-1; k>=0; k--){
+                        shapes.get(k).unselect();
+                    }
+                    break;
+                }else{
+                    shapes.get(i).unselect();
+                }
+            }
         }
         repaint();
     }
@@ -245,13 +273,26 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        Shape newShape;
         if(Window.mode==Mode.RECTANGLE){
             points.add(new Point((int)e.getX(), (int)e.getY()));
-            shapes.add(new Rectangle(points));
+            newShape = new Rectangle(points);
+            newShape.setColor(Window.rgb);
+            if(newShape.valid()){
+                shapes.add(newShape);
+            }else{
+                System.out.println("UNVALID");
+            }
             points.clear();
         }else if(Window.mode==Mode.CIRCLE){
             points.add(new Point((int)e.getX(), (int)e.getY()));
-            shapes.add(new Circle(points));
+            newShape = new Circle(points);
+            newShape.setColor(Window.rgb);
+            if(newShape.valid()){
+                shapes.add(newShape);
+            }else{
+                System.out.println("UNVALID");
+            }
             points.clear();
         }
         repaint();

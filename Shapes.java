@@ -41,6 +41,7 @@ abstract class Shape{
 
     public abstract boolean valid();
     public abstract boolean include(int x, int y);
+    public abstract void move(int deltaX, int deltaY);
     public abstract void draw(Graphics2D g2d);
     public abstract void preview(Graphics2D g2d, int x, int y);
 }
@@ -76,6 +77,14 @@ class Rectangle extends Shape{
                      (int) Math.min(points.get(0).getY(),points.get(1).getY()),
                      (int) Math.abs(points.get(1).getX()-points.get(0).getX()),
                      (int) Math.abs(points.get(1).getY()-points.get(0).getY()));
+    }
+
+    public void move(int deltaX, int deltaY){
+        x+=deltaX;
+        y+=deltaY;
+        for(Point p: points){
+            p.translate(deltaX,deltaY);
+        }
     }
 
     public boolean valid(){
@@ -120,6 +129,14 @@ class Circle extends Shape{
                      (int) Math.abs(points.get(1).getY()-points.get(0).getY()));
     }
 
+    public void move(int deltaX, int deltaY){
+        x+=deltaX;
+        y+=deltaY;
+        for(Point p: points){
+            p.translate(deltaX,deltaY);
+        }
+    }
+
     public boolean include(int currentX, int currentY){
         return (Math.pow(currentX-(x+dx),2)/(dx*dx) + Math.pow(currentY-(y+dy),2)/(dy*dy)) < 1;
     }
@@ -143,6 +160,9 @@ class Polygon extends Shape{
         path.closePath();
 
         g2d.setColor(color);
+        if(selected){
+            g2d.setColor(Color.MAGENTA);
+        }
         g2d.fill(path);
     }
 
@@ -160,16 +180,49 @@ class Polygon extends Shape{
         g2d.draw(path);
     }
 
-    public boolean include(int x, int y){
-        //TODO
-        return false;
+    public void move(int deltaX, int deltaY){
+        for(Point p: points){
+            p.translate(deltaX,deltaY);
+        }
+    }
+
+    public boolean include(int currentX, int currentY){
+        int x1,x2,y1,y2,
+        count=0;
+        // System.out.println(currentX);
+        for(int i=1;i<points.size(); i++){
+            x1=(int)points.get(i-1).getX();
+            x2=(int)points.get(i).getX();
+            y1=(int)points.get(i-1).getY();
+            y2=(int)points.get(i).getY();
+            if(y2-y1!=0){
+                // System.out.println(((currentY-y1)*(x2-x1)/(y2-y1))+x1);
+                if(Math.min(y2,y1)<currentY && currentY<Math.max(y2,y1)){
+                    if(currentX<((currentY-y1)*(x2-x1)/(y2-y1))+x1){
+                        count++;
+                    }
+                }
+            }
+        }
+        x1=(int)points.get(points.size()-1).getX();
+        x2=(int)points.get(0).getX();
+        y1=(int)points.get(points.size()-1).getY();
+        y2=(int)points.get(0).getY();
+        if(y2-y1!=0){
+            if(Math.min(y2,y1)<currentY && currentY<Math.max(y2,y1)){
+                if(currentX<((currentY-y1)*(x2-x1)/(y2-y1))+x1){
+                    count++;
+                }
+            }
+        }
+        return count%2==1;
     }
 
     public boolean valid(){
         boolean px=false,py=false;
         if(points.size()<3) return false;
         Point start = points.get(0);
-        for(int i; i<points.size();i++){
+        for(int i=1; i<points.size();i++){
             if(points.get(i).getX()!=start.getX()) px=true;
             if(points.get(i).getY()!=start.getY()) py=true;
             if(px&&py) return true;

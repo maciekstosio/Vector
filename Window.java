@@ -10,6 +10,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.KeyEvent;
+import javax.swing.KeyStroke;
 import java.util.ArrayList;
 
 enum Mode{
@@ -19,11 +21,11 @@ enum Mode{
 class Window extends JFrame implements ActionListener{
     public static Mode mode;
     public static Color rgb=Color.BLACK;
+    public static JPanel canvas;
 
     public Color c;
     private JFrame infoWindow;
     private JPanel toolbox;
-    private JPanel canvas;
     private JButton info,rectangle,circle,color,polygon,edit;
 
     public Window(){
@@ -99,7 +101,6 @@ class Window extends JFrame implements ActionListener{
         ActionListener setColor = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
             rgb = chooser.getColor();
-            System.out.println(rgb);
             color.setBackground(rgb);
           }
         };
@@ -110,17 +111,19 @@ class Window extends JFrame implements ActionListener{
             }
         }
 
-        JColorChooser.createDialog(null, "Dialog Title", false, chooser, setColor , null).setVisible(true);
+        JColorChooser.createDialog(null, "Wybierz kolor", false, chooser, setColor , null).setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        circle.setForeground(Color.BLACK);
-        polygon.setForeground(Color.BLACK);
-        rectangle.setForeground(Color.BLACK);
-        edit.setForeground(Color.BLACK);
+        if(source != info && source != color){
+            circle.setForeground(Color.BLACK);
+            polygon.setForeground(Color.BLACK);
+            rectangle.setForeground(Color.BLACK);
+            edit.setForeground(Color.BLACK);
+        }
 
         if(source==rectangle){
             if(Window.mode!=Mode.RECTANGLE){
@@ -164,14 +167,52 @@ class Window extends JFrame implements ActionListener{
 
 class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
     private Graphics2D g2d;
+    public static Shape selected;
     private int x, y;
-    private ArrayList<Shape> shapes = new ArrayList<Shape>();
+    public static ArrayList<Shape> shapes = new ArrayList<Shape>();
     private ArrayList<Point> points= new ArrayList<Point>();
 
     CanvasPanel(){
         setBackground(Color.WHITE);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addKeyBindings();
+    }
+
+    private void addKeyBindings(){
+        //BACKSPACE
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
+        getActionMap().put("delete", new AbstractAction(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for(int i=0;i<CanvasPanel.shapes.size();i++){
+                    if(CanvasPanel.selected==CanvasPanel.shapes.get(i)){
+                        CanvasPanel.selected=null;
+                        CanvasPanel.shapes.remove(i);
+                        Window.canvas.repaint();
+                        System.out.println("DELETED");
+                        break;
+                    }
+                }
+            }
+        });
+
+        //SHIFT
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SHIFT"), "shift press");
+        getActionMap().put("shift press", new AbstractAction(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("shift press");
+            }
+        });
+
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released SHIFT"), "shift release");
+        getActionMap().put("shift release", new AbstractAction(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("shift release");
+            }
+        });
     }
 
     @Override
@@ -194,15 +235,6 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
             preview = new Polygon(points);
             preview.preview(g2d,x,y);
         }
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
-            x= (int)e.getX();
-            y= (int)e.getY();
-        }
-        repaint();
     }
 
     @Override
@@ -233,22 +265,46 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
             x= (int)e.getX();
             y= (int)e.getY();
         }else if(Window.mode==Mode.EDIT){
-            for(int i = shapes.size()-1; i>=0; i--){
-                System.out.println(i);
-                if(shapes.get(i).include((int)e.getX(),(int)e.getY())){
-                    if(shapes.get(i).isSelected()){
-                        System.out.println("UNSELECT");
-                        shapes.get(i).unselect();
+            if (SwingUtilities.isRightMouseButton(e) || e.isControlDown()){
+                if(selected!=null){
+                    JColorChooser chooser = new JColorChooser();
+                    AbstractColorChooserPanel[] panels = chooser.getChooserPanels();
+                    ActionListener setColor = new ActionListener() {
+                      public void actionPerformed(ActionEvent actionEvent) {
+                        selected.setColor(chooser.getColor());
+                        Window.canvas.repaint();
+                      }
+                    };
+
+                    for (AbstractColorChooserPanel accp : panels) {
+                        if(!accp.getDisplayName().equals("RGB")) {
+                            chooser.removeChooserPanel(accp);
+                        }
+                    }
+
+                    JColorChooser.createDialog(null, "Wybierz kolor", false, chooser, setColor , null).setVisible(true);
+
+                }
+            }else{
+                for(int i = shapes.size()-1; i>=0; i--){
+                    // System.out.println(i);
+                    if(shapes.get(i).include((int)e.getX(),(int)e.getY())){
+                        if(shapes.get(i).isSelected()){
+                            System.out.println("UNSELECT");
+                            shapes.get(i).unselect();
+                            selected=null;
+                        }else{
+                            System.out.println("SELECT");
+                            shapes.get(i).select();
+                            selected = shapes.get(i);
+                        }
+                        for(int k = i-1; k>=0; k--){
+                            shapes.get(k).unselect();
+                        }
+                        break;
                     }else{
-                        System.out.println("SELECT");
-                        shapes.get(i).select();
+                        shapes.get(i).unselect();
                     }
-                    for(int k = i-1; k>=0; k--){
-                        shapes.get(k).unselect();
-                    }
-                    break;
-                }else{
-                    shapes.get(i).unselect();
                 }
             }
         }
@@ -267,6 +323,24 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
             points.add(new Point((int)e.getX(), (int)e.getY()));
             x= (int)e.getX();
             y= (int)e.getY();
+        }else if(Window.mode==Mode.EDIT){
+            x= (int)e.getX();
+            y= (int)e.getY();
+        }
+        repaint();
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
+            x= (int)e.getX();
+            y= (int)e.getY();
+        }else if(Window.mode==Mode.EDIT){
+            if(selected!=null){
+                selected.move(e.getX()-x,e.getY()-y);
+                x=(int)e.getX();
+                y=(int)e.getY();
+            }
         }
         repaint();
     }

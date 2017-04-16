@@ -165,7 +165,7 @@ class Window extends JFrame implements ActionListener{
     }
 }
 
-class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
+class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener{
     private Graphics2D g2d;
     public static Shape selected;
     private int x, y;
@@ -176,6 +176,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
         setBackground(Color.WHITE);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addMouseWheelListener(this);
         addKeyBindings();
     }
 
@@ -353,6 +354,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
             newShape = new Rectangle(points);
             newShape.setColor(Window.rgb);
             if(newShape.valid()){
+                newShape.init();                
                 shapes.add(newShape);
             }else{
                 System.out.println("UNVALID");
@@ -363,6 +365,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
             newShape = new Circle(points);
             newShape.setColor(Window.rgb);
             if(newShape.valid()){
+                newShape.init();
                 shapes.add(newShape);
             }else{
                 System.out.println("UNVALID");
@@ -370,5 +373,15 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener{
             points.clear();
         }
         repaint();
+    }
+
+    public void mouseWheelMoved(MouseWheelEvent e) {
+       String message;
+       int notches = e.getWheelRotation();
+       if(selected!=null){
+           selected.resize(notches);
+       }
+       System.out.println(notches);
+       repaint();
     }
 }

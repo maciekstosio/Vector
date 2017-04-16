@@ -14,6 +14,7 @@ abstract class Shape{
     ArrayList<Point> points;
     boolean selected=false;
     Color color=Color.BLACK;
+    double zoom = 0.05;
 
     public Shape(ArrayList<Point> p){
         points=new ArrayList<Point>(p);
@@ -41,6 +42,8 @@ abstract class Shape{
 
     public abstract boolean valid();
     public abstract boolean include(int x, int y);
+    public abstract void init();
+    public abstract void resize(int notch);
     public abstract void move(int deltaX, int deltaY);
     public abstract void draw(Graphics2D g2d);
     public abstract void preview(Graphics2D g2d, int x, int y);
@@ -53,16 +56,19 @@ class Rectangle extends Shape{
         super(p);
     }
 
+    public void init(){
+        x=(int) Math.min(points.get(0).getX(),points.get(1).getX());
+        y=(int) Math.min(points.get(0).getY(),points.get(1).getY());
+        width=(int) Math.abs(points.get(1).getX()-points.get(0).getX());
+        height=(int) Math.abs(points.get(1).getY()-points.get(0).getY());
+    }
+
     public void draw(Graphics2D g2d){
         Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 3, 1 }, 0);
         g2d.setColor(color);
         if(selected){
             g2d.setColor(Color.MAGENTA);
         }
-        x=(int) Math.min(points.get(0).getX(),points.get(1).getX());
-        y=(int) Math.min(points.get(0).getY(),points.get(1).getY());
-        width=(int) Math.abs(points.get(1).getX()-points.get(0).getX());
-        height=(int) Math.abs(points.get(1).getY()-points.get(0).getY());
         g2d.fillRect(x,y,width,height);
     }
 
@@ -87,6 +93,11 @@ class Rectangle extends Shape{
         }
     }
 
+    public void resize(int notch){
+        width=(int)Math.floor(width*(1+(notch*zoom)));
+        height=(int)Math.floor(height*(1+(notch*zoom)));
+    }
+
     public boolean valid(){
         return  Math.abs(points.get(1).getX()-points.get(0).getX())>0 && Math.abs(points.get(1).getY()-points.get(0).getY())>0;
     }
@@ -103,16 +114,19 @@ class Circle extends Shape{
         super(p);
     }
 
+    public void init(){
+        x=(int) Math.min(points.get(0).getX(),points.get(1).getX());
+        y=(int) Math.min(points.get(0).getY(),points.get(1).getY());
+        dx=(int) Math.abs(points.get(1).getX()-points.get(0).getX())/2;
+        dy=(int) Math.abs(points.get(1).getY()-points.get(0).getY())/2;
+    }
+
     public void draw(Graphics2D g2d){
         Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 3, 1 }, 0);
         g2d.setColor(color);
         if(selected){
             g2d.setColor(Color.MAGENTA);
         }
-        x=(int) Math.min(points.get(0).getX(),points.get(1).getX());
-        y=(int) Math.min(points.get(0).getY(),points.get(1).getY());
-        dx=(int) Math.abs(points.get(1).getX()-points.get(0).getX())/2;
-        dy=(int) Math.abs(points.get(1).getY()-points.get(0).getY())/2;
         g2d.fillOval(x,y,dx*2,dy*2);
     }
 
@@ -137,6 +151,11 @@ class Circle extends Shape{
         }
     }
 
+    public void resize(int notch){
+        dx=(int)Math.floor(dx*(1+(notch*zoom)));
+        dy=(int)Math.floor(dy*(1+(notch*zoom)));
+    }
+
     public boolean include(int currentX, int currentY){
         return (Math.pow(currentX-(x+dx),2)/(dx*dx) + Math.pow(currentY-(y+dy),2)/(dy*dy)) < 1;
     }
@@ -150,6 +169,8 @@ class Polygon extends Shape{
     public Polygon(ArrayList<Point> p){
         super(p);
     }
+
+    public void init(){}
 
     public void draw(Graphics2D g2d){
         GeneralPath path = new GeneralPath();
@@ -171,13 +192,16 @@ class Polygon extends Shape{
         GeneralPath path = new GeneralPath();
 
         add(currentX,currentY);
-
         path.moveTo(points.get(0).getX(),points.get(0).getY());
         for(int i=0; i<points.size(); i++) path.lineTo(points.get(i).getX(),points.get(i).getY());
 
         g2d.setColor(Color.BLUE);
         g2d.setStroke(stroke);
         g2d.draw(path);
+    }
+
+    public void resize(int notch){
+        //TODO
     }
 
     public void move(int deltaX, int deltaY){

@@ -1,20 +1,28 @@
+//UI
 import javax.swing.*;
 import javax.swing.colorchooser.*;
 import java.awt.*;
-import java.awt.geom.*;
-import java.awt.event.*;
-import java.lang.*;
-import javax.imageio.ImageIO;
-import java.io.File;
-import java.awt.image.BufferedImage;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.KeyEvent;
+
+//Events
 import javax.swing.KeyStroke;
+import java.awt.event.*;
+
+//Files
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+//Other
+import java.lang.*;
 import java.util.ArrayList;
+
 
 enum Mode{
     RECTANGLE, CIRCLE, POLYGON, EDIT;
@@ -28,10 +36,10 @@ class Window extends JFrame implements ActionListener{
     public Color c;
     private JFrame infoWindow;
     private JPanel toolbox;
-    private JButton info,rectangle,circle,color,polygon,edit;
+    private JButton info,rectangle,circle,color,polygon,edit,save,clear,open,export;
 
     public Window(){
-        super("Paint");
+        super("Vector");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700,400);
         setLayout(new BorderLayout());
@@ -53,14 +61,6 @@ class Window extends JFrame implements ActionListener{
         toolbox.add(left);
         toolbox.add(right);
         try{
-            color = new JButton();
-            color.addActionListener(this);
-            color.setBackground(rgb);
-            color.setPreferredSize(new Dimension(20, 20));
-            color.setBorder(BorderFactory.createEmptyBorder());
-            color.setOpaque(true);
-            left.add(color);
-                        
             BufferedImage image = ImageIO.read(new File("assets/edit.png"));
             ImageIcon icon = new ImageIcon(image);
             Image editImage = icon.getImage();
@@ -93,6 +93,46 @@ class Window extends JFrame implements ActionListener{
             polygon.addActionListener(this);
             left.add(polygon);
 
+            color = new JButton();
+            color.addActionListener(this);
+            color.setBackground(rgb);
+            color.setPreferredSize(new Dimension(20, 20));
+            color.setBorder(BorderFactory.createEmptyBorder());
+            color.setOpaque(true);
+            left.add(color);
+
+            image = ImageIO.read(new File("assets/clear.png"));
+            icon = new ImageIcon(image);
+            Image clearImage = icon.getImage();
+            clearImage = clearImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            clear = new JButton(new ImageIcon(clearImage));
+            clear.addActionListener(this);
+            right.add(clear);
+
+            image = ImageIO.read(new File("assets/open.png"));
+            icon = new ImageIcon(image);
+            Image openImage = icon.getImage();
+            openImage = openImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            open = new JButton(new ImageIcon(openImage));
+            open.addActionListener(this);
+            right.add(open);
+
+            image = ImageIO.read(new File("assets/save.png"));
+            icon = new ImageIcon(image);
+            Image saveImage = icon.getImage();
+            saveImage = saveImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            save = new JButton(new ImageIcon(saveImage));
+            save.addActionListener(this);
+            right.add(save);
+
+            image = ImageIO.read(new File("assets/export.png"));
+            icon = new ImageIcon(image);
+            Image exportImage = icon.getImage();
+            exportImage = exportImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            export = new JButton(new ImageIcon(exportImage));
+            export.addActionListener(this);
+            right.add(export);
+
             image = ImageIO.read(new File("assets/info.png"));
             icon = new ImageIcon(image);
             Image infoImage = icon.getImage();
@@ -117,7 +157,7 @@ class Window extends JFrame implements ActionListener{
         infoWindow.setResizable(false);
         infoWindow.setLayout(new FlowLayout());
 
-        infoWindow.add(new JLabel("<html><center style='margin-top: 30px;'>Prosty program do edycji grafiki.<br/>Autor Maciej Stosio<br/>Icons from the Noun Project</center></html>"));
+        infoWindow.add(new JLabel("<html><center style='margin-top: 30px;'>Vector - prosty program do edycji grafiki.<br/>Autor Maciej Stosio<br/>Icons from the Noun Project</center></html>"));
     }
 
     private void createColorPicker(){
@@ -148,7 +188,8 @@ class Window extends JFrame implements ActionListener{
             polygon.setForeground(Color.BLACK);
             rectangle.setForeground(Color.BLACK);
             edit.setForeground(Color.BLACK);
-            CanvasPanel.selected=null;
+            CanvasPanel.selected = null;
+            CanvasPanel.points = new ArrayList<DoublePoint>();
             for(Shape s: CanvasPanel.shapes){
                 s.unselect();
             }
@@ -196,225 +237,112 @@ class Window extends JFrame implements ActionListener{
             infoWindow.setVisible(true);
         }else if(source==color){
             createColorPicker();
-        }
-    }
-}
+        }else if(source==save){
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new VectorFilter());
+            if(fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                BufferedWriter bw;
+                try{
+                    bw = new BufferedWriter(new FileWriter(file.toString()));
 
-class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener{
-    private Graphics2D g2d;
-    public static Shape selected;
-    private int x, y;
-    public static ArrayList<Shape> shapes = new ArrayList<Shape>();
-    private ArrayList<DoublePoint> points= new ArrayList<DoublePoint>();
-
-    CanvasPanel(){
-        setBackground(Color.WHITE);
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        addMouseWheelListener(this);
-        addKeyBindings();
-    }
-
-    private void addKeyBindings(){
-        //BACKSPACE
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
-        getActionMap().put("delete", new AbstractAction(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                for(int i=0;i<CanvasPanel.shapes.size();i++){
-                    if(CanvasPanel.selected==CanvasPanel.shapes.get(i)){
-                        CanvasPanel.selected=null;
-                        CanvasPanel.shapes.remove(i);
-                        Window.canvas.repaint();
-                        System.out.println("DELETED");
-                        break;
-                    }
-                }
-            }
-        });
-
-        //SHIFT
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SHIFT"), "shift press");
-        getActionMap().put("shift press", new AbstractAction(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("shift press");
-            }
-        });
-
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released SHIFT"), "shift release");
-        getActionMap().put("shift release", new AbstractAction(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("shift release");
-            }
-        });
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        Shape preview;
-        super.paintComponent(g);
-        g2d = (Graphics2D) g;
-        g2d.setColor(Color.WHITE);
-        g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
-
-        for(Shape item: shapes) item.draw(g2d);
-
-        if(Window.mode==Mode.RECTANGLE && points.size()>0){
-            preview = new Rectangle(points);
-            preview.preview(g2d,x,y);
-        }else if(Window.mode==Mode.CIRCLE && points.size()>0){
-            preview = new Circle(points);
-            preview.preview(g2d,x,y);
-        }else if(Window.mode==Mode.POLYGON){
-            preview = new Polygon(points);
-            preview.preview(g2d,x,y);
-        }
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        if(Window.mode==Mode.POLYGON){
-            x= e.getX();
-            y= e.getY();
-        }
-        repaint();
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        if(Window.mode==Mode.POLYGON){
-            Shape newShape;
-            points.add(new DoublePoint(e.getX(), e.getY()));
-            if(e.getClickCount() == 2 && !e.isConsumed()) {
-                e.consume();
-                newShape = new Polygon(points);
-                newShape.setColor(Window.rgb);
-                if(newShape.valid()){
-                    shapes.add(newShape);
-                }else{
-                    System.out.println("UNVALID");
-                }
-                points.clear();
-            }
-            x=e.getX();
-            y=e.getY();
-        }else if(Window.mode==Mode.EDIT){
-            if (SwingUtilities.isRightMouseButton(e) || e.isControlDown()){
-                if(selected!=null){
-                    JColorChooser chooser = new JColorChooser();
-                    AbstractColorChooserPanel[] panels = chooser.getChooserPanels();
-                    ActionListener setColor = new ActionListener() {
-                      public void actionPerformed(ActionEvent actionEvent) {
-                        selected.setColor(chooser.getColor());
-                        Window.canvas.repaint();
-                      }
-                    };
-
-                    for (AbstractColorChooserPanel accp : panels) {
-                        if(!accp.getDisplayName().equals("RGB")) {
-                            chooser.removeChooserPanel(accp);
+                    bw.write(getWidth() + "," + getHeight());
+                    bw.newLine();
+                    bw.write(CanvasPanel.shapes.size()+"");
+                    bw.newLine();
+                    for(Shape s: CanvasPanel.shapes){
+                        Color color = s.getColor();
+                        bw.write(s.getClass().getSimpleName());
+                        bw.newLine();
+                        bw.write(color.getRed()+","+color.getGreen()+","+color.getBlue()+","+color.getAlpha());
+                        bw.newLine();
+                        ArrayList<DoublePoint> points = s.getPoints();
+                        bw.write(points.size()+"");
+                        bw.newLine();
+                        for(DoublePoint p: points){
+                            bw.write(p.getX()+","+p.getY());
+                            bw.newLine();
                         }
                     }
-
-                    JColorChooser.createDialog(null, "Wybierz kolor", false, chooser, setColor , null).setVisible(true);
-
+                    bw.close();
+                }catch(Exception ex){
+                    System.out.println(ex.getMessage());
                 }
-            }else{
-                for(int i = shapes.size()-1; i>=0; i--){
-                    if(shapes.get(i).include(e.getX(),e.getY())){
-                        if(shapes.get(i).isSelected()){
-                            System.out.println("UNSELECT");
-                            shapes.get(i).unselect();
-                            selected=null;
-                        }else{
-                            System.out.println("SELECT");
-                            shapes.get(i).select();
-                            selected = shapes.get(i);
+            }
+        }else if(source==open){
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new VectorFilter());
+            if(fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                BufferedReader br;
+                try{
+                    String line;
+
+                    br = new BufferedReader(new FileReader(file.toString()));
+                    CanvasPanel.shapes = new ArrayList<Shape>();
+                    CanvasPanel.selected = null;
+                    CanvasPanel.points = new ArrayList<DoublePoint>();
+
+                    if((line = br.readLine()) != null){
+                        String[] parts = line.split(",");
+                        int width = Integer.parseInt(parts[0]);
+                        int height = Integer.parseInt(parts[1]);
+                        if((line = br.readLine()) != null){
+                            int n = Integer.parseInt(line);
+                            for(int i=0; i<n; i++){
+                                String shapeName = br.readLine();
+
+                                parts = br.readLine().split(",");
+                                int r= Integer.parseInt(parts[0]);
+                                int g = Integer.parseInt(parts[1]);
+                                int b = Integer.parseInt(parts[2]);
+                                int a = Integer.parseInt(parts[3]);
+
+                                int k = Integer.parseInt(br.readLine());
+
+                                ArrayList<DoublePoint> points = new ArrayList<DoublePoint>();
+                                for(int j=0; j<k; j++){
+                                    parts = br.readLine().split(",");
+                                    points.add(new DoublePoint(Double.parseDouble(parts[0]),Double.parseDouble(parts[01])));
+                                }
+
+                                Shape shape;
+                                switch(shapeName){
+                                    case "Rectangle":
+                                        shape = new Rectangle(points);
+                                        break;
+                                    case "Circle":
+                                        shape = new Circle(points);
+                                        break;
+                                    default:
+                                        shape = new Polygon(points);
+                                        break;
+                                }
+                                shape.setColor(new Color(r,g,b,a));
+                                shape.init();
+
+                                CanvasPanel.shapes.add(shape);
+                            }
                         }
-                        for(int k = i-1; k>=0; k--){
-                            shapes.get(k).unselect();
-                        }
-                        break;
-                    }else{
-                        shapes.get(i).unselect();
                     }
+                    while ((line = br.readLine()) != null) {
+        				System.out.println(line);
+        			}
+                    br.close();
+                }catch(Exception ex){
+                    System.out.println(ex.getMessage());
                 }
             }
-        }
-        repaint();
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {}
-
-    @Override
-    public void mouseExited(MouseEvent e) {}
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
-            points.add(new DoublePoint(e.getX(), e.getY()));
-            x= e.getX();
-            y= e.getY();
-        }else if(Window.mode==Mode.EDIT){
-            x= e.getX();
-            y= e.getY();
-        }
-        repaint();
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
-            x= e.getX();
-            y= e.getY();
-        }else if(Window.mode==Mode.EDIT){
-            if(selected!=null){
-                selected.move(e.getX()-x,e.getY()-y);
-                x=e.getX();
-                y=e.getY();
+        }else if(source==export){
+            JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+              File file = fileChooser.getSelectedFile();
+              //Export to png
             }
+        }else if(source==clear){
+            CanvasPanel.shapes = new ArrayList<Shape>();
+            CanvasPanel.selected = null;
+            CanvasPanel.points = new ArrayList<DoublePoint>();
         }
-        repaint();
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        Shape newShape;
-        if(Window.mode==Mode.RECTANGLE){
-            points.add(new DoublePoint(e.getX(), e.getY()));
-            newShape = new Rectangle(points);
-            newShape.setColor(Window.rgb);
-            if(newShape.valid()){
-                newShape.init();
-                shapes.add(newShape);
-            }else{
-                System.out.println("UNVALID");
-            }
-            points.clear();
-        }else if(Window.mode==Mode.CIRCLE){
-            points.add(new DoublePoint(e.getX(), e.getY()));
-            newShape = new Circle(points);
-            newShape.setColor(Window.rgb);
-            if(newShape.valid()){
-                newShape.init();
-                shapes.add(newShape);
-            }else{
-                System.out.println("UNVALID");
-            }
-            points.clear();
-        }
-        repaint();
-    }
-
-    public void mouseWheelMoved(MouseWheelEvent e) {
-       String message;
-       int notches = e.getWheelRotation();
-       if(selected!=null){
-           selected.resize(notches);
-       }
-       repaint();
     }
 }

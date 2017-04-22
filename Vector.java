@@ -4,22 +4,15 @@
 *@version 1.0
 */
 
+//UI
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.*;
-import java.lang.*;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
+import java.awt.event.*;
 
 /**
 *Klasa startowa
 */
-public class Paint{
+public class Vector{
     /**
     *Metoda uruchamiajaca program
     *@param args Array of string

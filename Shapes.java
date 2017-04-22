@@ -1,13 +1,8 @@
-import javax.swing.*;
+//Graphics
 import java.awt.*;
 import java.awt.geom.*;
-import java.lang.*;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+//Other
 import java.util.ArrayList;
 
 abstract class Shape{
@@ -38,6 +33,14 @@ abstract class Shape{
 
     public void setColor(Color c){
         color=c;
+    }
+
+    public Color getColor(){
+        return color;
+    }
+
+    public ArrayList<DoublePoint> getPoints(){
+        return points;
     }
 
     public abstract boolean valid();
@@ -101,6 +104,7 @@ class Rectangle extends Shape{
             width=x;
             height=1;
         }
+        //TODO: update points after resize
     }
 
     public boolean valid(){
@@ -165,6 +169,7 @@ class Circle extends Shape{
             dx=x;
             dy=1;
         }
+        //TODO: update points after resize
     }
 
     public boolean include(int currentX, int currentY){

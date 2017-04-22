@@ -50,17 +50,17 @@ abstract class Shape{
 }
 
 class Rectangle extends Shape{
-    public int width,height,x,y;
+    public double width,height,x,y;
 
     public Rectangle(ArrayList<Point> p){
         super(p);
     }
 
     public void init(){
-        x=(int) Math.min(points.get(0).getX(),points.get(1).getX());
-        y=(int) Math.min(points.get(0).getY(),points.get(1).getY());
-        width=(int) Math.abs(points.get(1).getX()-points.get(0).getX());
-        height=(int) Math.abs(points.get(1).getY()-points.get(0).getY());
+        x=Math.min(points.get(0).getX(),points.get(1).getX());
+        y=Math.min(points.get(0).getY(),points.get(1).getY());
+        width=Math.abs(points.get(1).getX()-points.get(0).getX());
+        height=Math.abs(points.get(1).getY()-points.get(0).getY());
     }
 
     public void draw(Graphics2D g2d){
@@ -69,7 +69,7 @@ class Rectangle extends Shape{
         if(selected){
             g2d.setColor(Color.MAGENTA);
         }
-        g2d.fillRect(x,y,width,height);
+        g2d.fillRect((int) Math.floor(x),(int) Math.floor(y), (int) Math.floor(width), (int) Math.floor(height));
     }
 
     public void preview(Graphics2D g2d, int currentX, int currentY){
@@ -94,8 +94,13 @@ class Rectangle extends Shape{
     }
 
     public void resize(int notch){
-        width=(int)Math.floor(width*(1+(notch*zoom)));
-        height=(int)Math.floor(height*(1+(notch*zoom)));
+        double x = width/height;
+        width*=1.0+zoom*notch;
+        height*=1.0+zoom*notch;
+        if(width<1 || height<1){
+            width=x;
+            height=1;
+        }
     }
 
     public boolean valid(){
@@ -108,17 +113,17 @@ class Rectangle extends Shape{
 }
 
 class Circle extends Shape{
-    private int x,y,dx,dy;
+    private double x,y,dx,dy;
 
     public Circle(ArrayList<Point> p){
         super(p);
     }
 
     public void init(){
-        x=(int) Math.min(points.get(0).getX(),points.get(1).getX());
-        y=(int) Math.min(points.get(0).getY(),points.get(1).getY());
-        dx=(int) Math.abs(points.get(1).getX()-points.get(0).getX())/2;
-        dy=(int) Math.abs(points.get(1).getY()-points.get(0).getY())/2;
+        x= Math.min(points.get(0).getX(),points.get(1).getX());
+        y= Math.min(points.get(0).getY(),points.get(1).getY());
+        dx= Math.abs(points.get(1).getX()-points.get(0).getX())/2;
+        dy= Math.abs(points.get(1).getY()-points.get(0).getY())/2;
     }
 
     public void draw(Graphics2D g2d){
@@ -127,7 +132,7 @@ class Circle extends Shape{
         if(selected){
             g2d.setColor(Color.MAGENTA);
         }
-        g2d.fillOval(x,y,dx*2,dy*2);
+        g2d.fillOval((int) Math.floor(x),(int) Math.floor(y),(int) Math.floor(dx*2),(int) Math.floor(dy*2));
     }
 
     public void preview(Graphics2D g2d, int currentX, int currentY){
@@ -137,6 +142,7 @@ class Circle extends Shape{
 
         g2d.setColor(Color.BLUE);
         g2d.setStroke(stroke);
+
         g2d.drawOval((int) Math.min(points.get(0).getX(),points.get(1).getX()),
                      (int) Math.min(points.get(0).getY(),points.get(1).getY()),
                      (int) Math.abs(points.get(1).getX()-points.get(0).getX()),
@@ -152,8 +158,13 @@ class Circle extends Shape{
     }
 
     public void resize(int notch){
-        dx=(int)Math.floor(dx*(1+(notch*zoom)));
-        dy=(int)Math.floor(dy*(1+(notch*zoom)));
+        double x = dx/dy;
+        dx *= 1.0+notch*zoom;
+        dy *= 1.0+notch*zoom;
+        if(dy<1 || dx<1){
+            dx=x;
+            dy=1;
+        }
     }
 
     public boolean include(int currentX, int currentY){
@@ -201,7 +212,14 @@ class Polygon extends Shape{
     }
 
     public void resize(int notch){
-        //TODO
+        double x = points.get(0).getX();
+        double y = points.get(0).getY();
+        for(int i=1;i<points.size();i++){
+            points.get(i).setLocation(
+                (int)(points.get(i-1).getX()+(points.get(i).getX()-points.get(i-1).getX())*(1.0+notch*zoom)),
+                (int)(points.get(i-1).getY()+(points.get(i).getY()-points.get(i-1).getY())*(1.0+notch*zoom))
+                );
+        }
     }
 
     public void move(int deltaX, int deltaY){

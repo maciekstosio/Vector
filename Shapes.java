@@ -11,17 +11,17 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 
 abstract class Shape{
-    ArrayList<Point> points;
+    ArrayList<DoublePoint> points;
     boolean selected=false;
     Color color=Color.BLACK;
     double zoom = 0.05;
 
-    public Shape(ArrayList<Point> p){
-        points=new ArrayList<Point>(p);
+    public Shape(ArrayList<DoublePoint> p){
+        points=new ArrayList<DoublePoint>(p);
     }
 
     public void add(int x, int y){
-        points.add(new Point(x,y));
+        points.add(new DoublePoint(x,y));
     }
 
     public boolean isSelected(){
@@ -52,7 +52,7 @@ abstract class Shape{
 class Rectangle extends Shape{
     public double width,height,x,y;
 
-    public Rectangle(ArrayList<Point> p){
+    public Rectangle(ArrayList<DoublePoint> p){
         super(p);
     }
 
@@ -88,7 +88,7 @@ class Rectangle extends Shape{
     public void move(int deltaX, int deltaY){
         x+=deltaX;
         y+=deltaY;
-        for(Point p: points){
+        for(DoublePoint p: points){
             p.translate(deltaX,deltaY);
         }
     }
@@ -115,7 +115,7 @@ class Rectangle extends Shape{
 class Circle extends Shape{
     private double x,y,dx,dy;
 
-    public Circle(ArrayList<Point> p){
+    public Circle(ArrayList<DoublePoint> p){
         super(p);
     }
 
@@ -152,7 +152,7 @@ class Circle extends Shape{
     public void move(int deltaX, int deltaY){
         x+=deltaX;
         y+=deltaY;
-        for(Point p: points){
+        for(DoublePoint p: points){
             p.translate(deltaX,deltaY);
         }
     }
@@ -177,7 +177,7 @@ class Circle extends Shape{
 }
 
 class Polygon extends Shape{
-    public Polygon(ArrayList<Point> p){
+    public Polygon(ArrayList<DoublePoint> p){
         super(p);
     }
 
@@ -186,9 +186,8 @@ class Polygon extends Shape{
     public void draw(Graphics2D g2d){
         GeneralPath path = new GeneralPath();
 
-        path.moveTo(points.get(0).getX(),points.get(0).getY());
-        for(int i=0; i<points.size(); i++) path.lineTo(points.get(i).getX(),points.get(i).getY());
-        path.lineTo(points.get(0).getX(),points.get(0).getY());
+        path.moveTo((int)points.get(0).getX(),(int)points.get(0).getY());
+        for(int i=0; i<points.size(); i++) path.lineTo((int)points.get(i).getX(),(int)points.get(i).getY());
         path.closePath();
 
         g2d.setColor(color);
@@ -203,8 +202,8 @@ class Polygon extends Shape{
         GeneralPath path = new GeneralPath();
 
         add(currentX,currentY);
-        path.moveTo(points.get(0).getX(),points.get(0).getY());
-        for(int i=0; i<points.size(); i++) path.lineTo(points.get(i).getX(),points.get(i).getY());
+        path.moveTo((int)points.get(0).getX(),(int)points.get(0).getY());
+        for(int i=0; i<points.size(); i++) path.lineTo((int)points.get(i).getX(),(int)points.get(i).getY());
 
         g2d.setColor(Color.BLUE);
         g2d.setStroke(stroke);
@@ -214,31 +213,33 @@ class Polygon extends Shape{
     public void resize(int notch){
         double x = points.get(0).getX();
         double y = points.get(0).getY();
+        // double x,y;
+        DoublePoint vector;
         for(int i=1;i<points.size();i++){
-            points.get(i).setLocation(
-                (int)(points.get(i-1).getX()+(points.get(i).getX()-points.get(i-1).getX())*(1.0+notch*zoom)),
-                (int)(points.get(i-1).getY()+(points.get(i).getY()-points.get(i-1).getY())*(1.0+notch*zoom))
-                );
+            vector = new DoublePoint();
+            vector.setLocation(points.get(i).getX()-x,points.get(i).getY()-y);
+            x = points.get(i).getX();
+            y = points.get(i).getY();
+            points.get(i).setLocation(points.get(i-1).getX()+vector.getX()*(1.0+notch*zoom),
+                                      points.get(i-1).getY()+vector.getY()*(1.0+notch*zoom));
         }
     }
 
     public void move(int deltaX, int deltaY){
-        for(Point p: points){
+        for(DoublePoint p: points){
             p.translate(deltaX,deltaY);
         }
     }
 
     public boolean include(int currentX, int currentY){
-        int x1,x2,y1,y2,
+        double x1,x2,y1,y2,
         count=0;
-        // System.out.println(currentX);
         for(int i=1;i<points.size(); i++){
-            x1=(int)points.get(i-1).getX();
-            x2=(int)points.get(i).getX();
-            y1=(int)points.get(i-1).getY();
-            y2=(int)points.get(i).getY();
+            x1=points.get(i-1).getX();
+            x2=points.get(i).getX();
+            y1=points.get(i-1).getY();
+            y2=points.get(i).getY();
             if(y2-y1!=0){
-                // System.out.println(((currentY-y1)*(x2-x1)/(y2-y1))+x1);
                 if(Math.min(y2,y1)<currentY && currentY<Math.max(y2,y1)){
                     if(currentX<((currentY-y1)*(x2-x1)/(y2-y1))+x1){
                         count++;
@@ -246,10 +247,10 @@ class Polygon extends Shape{
                 }
             }
         }
-        x1=(int)points.get(points.size()-1).getX();
-        x2=(int)points.get(0).getX();
-        y1=(int)points.get(points.size()-1).getY();
-        y2=(int)points.get(0).getY();
+        x1=points.get(points.size()-1).getX();
+        x2=points.get(0).getX();
+        y1=points.get(points.size()-1).getY();
+        y2=points.get(0).getY();
         if(y2-y1!=0){
             if(Math.min(y2,y1)<currentY && currentY<Math.max(y2,y1)){
                 if(currentX<((currentY-y1)*(x2-x1)/(y2-y1))+x1){
@@ -263,7 +264,7 @@ class Polygon extends Shape{
     public boolean valid(){
         boolean px=false,py=false;
         if(points.size()<3) return false;
-        Point start = points.get(0);
+        DoublePoint start = points.get(0);
         for(int i=1; i<points.size();i++){
             if(points.get(i).getX()!=start.getX()) px=true;
             if(points.get(i).getY()!=start.getY()) py=true;

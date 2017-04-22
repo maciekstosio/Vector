@@ -4,7 +4,9 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.event.*;
 import java.lang.*;
-
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -50,34 +52,57 @@ class Window extends JFrame implements ActionListener{
 
         toolbox.add(left);
         toolbox.add(right);
+        try{
+            color = new JButton();
+            color.addActionListener(this);
+            color.setBackground(rgb);
+            color.setPreferredSize(new Dimension(20, 20));
+            color.setBorder(BorderFactory.createEmptyBorder());
+            color.setOpaque(true);
+            left.add(color);
+                        
+            BufferedImage image = ImageIO.read(new File("assets/edit.png"));
+            ImageIcon icon = new ImageIcon(image);
+            Image editImage = icon.getImage();
+            editImage = editImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH ) ;
+            edit = new JButton(new ImageIcon(editImage));
+            edit.addActionListener(this);
+            left.add(edit);
 
-        edit = new JButton("E");
-        edit.addActionListener(this);
-        left.add(edit);
+            image = ImageIO.read(new File("assets/rectangle.png"));
+            icon = new ImageIcon(image);
+            Image rectangleImage = icon.getImage();
+            rectangleImage = rectangleImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            rectangle = new JButton(new ImageIcon(rectangleImage));
+            rectangle.addActionListener(this);
+            left.add(rectangle);
 
-        rectangle = new JButton("R");
-        rectangle.addActionListener(this);
-        left.add(rectangle);
+            image = ImageIO.read(new File("assets/circle.png"));
+            icon = new ImageIcon(image);
+            Image circleImage = icon.getImage();
+            circleImage = circleImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            circle = new JButton(new ImageIcon(circleImage));
+            circle.addActionListener(this);
+            left.add(circle);
 
-        circle = new JButton("O");
-        circle.addActionListener(this);
-        left.add(circle);
+            image = ImageIO.read(new File("assets/polygon.png"));
+            icon = new ImageIcon(image);
+            Image polygonImage = icon.getImage();
+            polygonImage = polygonImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            polygon = new JButton(new ImageIcon(polygonImage));
+            polygon.addActionListener(this);
+            left.add(polygon);
 
-        polygon = new JButton("P");
-        polygon.addActionListener(this);
-        left.add(polygon);
-
-        color = new JButton();
-        color.addActionListener(this);
-        color.setBackground(rgb);
-        color.setPreferredSize(new Dimension(20, 20));
-        color.setBorder(BorderFactory.createEmptyBorder());
-        color.setOpaque(true);
-        left.add(color);
-
-        info = new JButton("Informacje");
-        info.addActionListener(this);
-        right.add(info);
+            image = ImageIO.read(new File("assets/info.png"));
+            icon = new ImageIcon(image);
+            Image infoImage = icon.getImage();
+            infoImage = infoImage.getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH );
+            info = new JButton(new ImageIcon(infoImage));
+            info.addActionListener(this);
+            right.add(info);
+        }catch(Exception ex){
+            System.out.println(ex.getMessage());
+        }
     }
 
     private void createCanvas(){
@@ -88,11 +113,11 @@ class Window extends JFrame implements ActionListener{
     private void createInfoWindow(){
         infoWindow = new JFrame("Informacje");
         infoWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        infoWindow.setSize(300,150);
+        infoWindow.setSize(300,175);
         infoWindow.setResizable(false);
         infoWindow.setLayout(new FlowLayout());
 
-        infoWindow.add(new JLabel("<html><center style='margin-top: 30px;'>Prosty program do edycji grafiki.<br/>&copy; Maciej Stosio</center></html>"));
+        infoWindow.add(new JLabel("<html><center style='margin-top: 30px;'>Prosty program do edycji grafiki.<br/>Autor Maciej Stosio<br/>Icons from the Noun Project</center></html>"));
     }
 
     private void createColorPicker(){
@@ -123,6 +148,11 @@ class Window extends JFrame implements ActionListener{
             polygon.setForeground(Color.BLACK);
             rectangle.setForeground(Color.BLACK);
             edit.setForeground(Color.BLACK);
+            CanvasPanel.selected=null;
+            for(Shape s: CanvasPanel.shapes){
+                s.unselect();
+            }
+            Window.canvas.repaint();
         }
 
         if(source==rectangle){
@@ -156,6 +186,11 @@ class Window extends JFrame implements ActionListener{
             }else{
                 edit.setForeground(Color.BLACK);
                 Window.mode = null;
+                CanvasPanel.selected=null;
+                for(Shape s: CanvasPanel.shapes){
+                    s.unselect();
+                }
+                Window.canvas.repaint();
             }
         }else if(source==info){
             infoWindow.setVisible(true);
@@ -170,7 +205,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
     public static Shape selected;
     private int x, y;
     public static ArrayList<Shape> shapes = new ArrayList<Shape>();
-    private ArrayList<Point> points= new ArrayList<Point>();
+    private ArrayList<DoublePoint> points= new ArrayList<DoublePoint>();
 
     CanvasPanel(){
         setBackground(Color.WHITE);
@@ -241,8 +276,8 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
     @Override
     public void mouseMoved(MouseEvent e) {
         if(Window.mode==Mode.POLYGON){
-            x= (int)e.getX();
-            y= (int)e.getY();
+            x= e.getX();
+            y= e.getY();
         }
         repaint();
     }
@@ -251,7 +286,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
     public void mouseClicked(MouseEvent e) {
         if(Window.mode==Mode.POLYGON){
             Shape newShape;
-            points.add(new Point((int)e.getX(), (int)e.getY()));
+            points.add(new DoublePoint(e.getX(), e.getY()));
             if(e.getClickCount() == 2 && !e.isConsumed()) {
                 e.consume();
                 newShape = new Polygon(points);
@@ -263,8 +298,8 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
                 }
                 points.clear();
             }
-            x= (int)e.getX();
-            y= (int)e.getY();
+            x=e.getX();
+            y=e.getY();
         }else if(Window.mode==Mode.EDIT){
             if (SwingUtilities.isRightMouseButton(e) || e.isControlDown()){
                 if(selected!=null){
@@ -288,8 +323,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
                 }
             }else{
                 for(int i = shapes.size()-1; i>=0; i--){
-                    // System.out.println(i);
-                    if(shapes.get(i).include((int)e.getX(),(int)e.getY())){
+                    if(shapes.get(i).include(e.getX(),e.getY())){
                         if(shapes.get(i).isSelected()){
                             System.out.println("UNSELECT");
                             shapes.get(i).unselect();
@@ -321,12 +355,12 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
     @Override
     public void mousePressed(MouseEvent e) {
         if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
-            points.add(new Point((int)e.getX(), (int)e.getY()));
-            x= (int)e.getX();
-            y= (int)e.getY();
+            points.add(new DoublePoint(e.getX(), e.getY()));
+            x= e.getX();
+            y= e.getY();
         }else if(Window.mode==Mode.EDIT){
-            x= (int)e.getX();
-            y= (int)e.getY();
+            x= e.getX();
+            y= e.getY();
         }
         repaint();
     }
@@ -334,13 +368,13 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
     @Override
     public void mouseDragged(MouseEvent e) {
         if(Window.mode==Mode.RECTANGLE || Window.mode==Mode.CIRCLE){
-            x= (int)e.getX();
-            y= (int)e.getY();
+            x= e.getX();
+            y= e.getY();
         }else if(Window.mode==Mode.EDIT){
             if(selected!=null){
                 selected.move(e.getX()-x,e.getY()-y);
-                x=(int)e.getX();
-                y=(int)e.getY();
+                x=e.getX();
+                y=e.getY();
             }
         }
         repaint();
@@ -350,18 +384,18 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
     public void mouseReleased(MouseEvent e) {
         Shape newShape;
         if(Window.mode==Mode.RECTANGLE){
-            points.add(new Point((int)e.getX(), (int)e.getY()));
+            points.add(new DoublePoint(e.getX(), e.getY()));
             newShape = new Rectangle(points);
             newShape.setColor(Window.rgb);
             if(newShape.valid()){
-                newShape.init();                
+                newShape.init();
                 shapes.add(newShape);
             }else{
                 System.out.println("UNVALID");
             }
             points.clear();
         }else if(Window.mode==Mode.CIRCLE){
-            points.add(new Point((int)e.getX(), (int)e.getY()));
+            points.add(new DoublePoint(e.getX(), e.getY()));
             newShape = new Circle(points);
             newShape.setColor(Window.rgb);
             if(newShape.valid()){
@@ -381,7 +415,6 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
        if(selected!=null){
            selected.resize(notches);
        }
-       System.out.println(notches);
        repaint();
     }
 }

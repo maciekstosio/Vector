@@ -9,6 +9,8 @@ import java.awt.event.*;
 
 //Files
 import java.io.File;
+import java.io.FilenameFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.BufferedReader;
@@ -24,20 +26,33 @@ import java.lang.*;
 import java.util.ArrayList;
 
 
+/**
+*Enum class defining mode types.
+*/
 enum Mode{
     RECTANGLE, CIRCLE, POLYGON, EDIT;
 }
 
-class Window extends JFrame implements ActionListener{
+/**
+*Class handling window behavior.
+*@author Maciej Stosio
+*@version 1.0
+*/
+public class Window extends JFrame implements ActionListener{
+    /** Selected global mode */
     public static Mode mode;
+    /** Global color */
     public static Color rgb=Color.BLACK;
+    /** Cancvas */
     public static JPanel canvas;
 
-    public Color c;
     private JFrame infoWindow;
     private JPanel toolbox;
     private JButton info,rectangle,circle,color,polygon,edit,save,clear,open,export;
 
+    /**
+    *Lunch main window.
+    */
     public Window(){
         super("Vector");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -141,7 +156,7 @@ class Window extends JFrame implements ActionListener{
             info.addActionListener(this);
             right.add(info);
         }catch(Exception ex){
-            System.out.println(ex.getMessage());
+            JOptionPane.showMessageDialog(this,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -151,7 +166,7 @@ class Window extends JFrame implements ActionListener{
     }
 
     private void createInfoWindow(){
-        infoWindow = new JFrame("Informacje");
+        infoWindow = new JFrame("Information");
         infoWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         infoWindow.setSize(300,175);
         infoWindow.setResizable(false);
@@ -176,18 +191,17 @@ class Window extends JFrame implements ActionListener{
             }
         }
 
-        JColorChooser.createDialog(null, "Wybierz kolor", false, chooser, setColor , null).setVisible(true);
+        JColorChooser.createDialog(null, "Choose a color", false, chooser, setColor , null).setVisible(true);
     }
 
+    /**
+    *Handle buttons' actions i.e change global mode, open info moda, save, open files, clear canvas.
+    */
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
         if(source != info && source != color){
-            circle.setForeground(Color.BLACK);
-            polygon.setForeground(Color.BLACK);
-            rectangle.setForeground(Color.BLACK);
-            edit.setForeground(Color.BLACK);
             CanvasPanel.selected = null;
             CanvasPanel.points = new ArrayList<DoublePoint>();
             for(Shape s: CanvasPanel.shapes){
@@ -198,34 +212,26 @@ class Window extends JFrame implements ActionListener{
 
         if(source==rectangle){
             if(Window.mode!=Mode.RECTANGLE){
-                rectangle.setForeground(Color.BLUE);
                 Window.mode = Mode.RECTANGLE;
             }else{
-                rectangle.setForeground(Color.BLACK);
                 Window.mode = null;
             }
         }else if(source==circle){
             if(Window.mode!=Mode.CIRCLE){
-                circle.setForeground(Color.BLUE);
                 Window.mode = Mode.CIRCLE;
             }else{
-                circle.setForeground(Color.BLACK);
                 Window.mode = null;
             }
         }else if(source==polygon){
             if(Window.mode!=Mode.POLYGON){
-                polygon.setForeground(Color.BLUE);
                 Window.mode = Mode.POLYGON;
             }else{
-                polygon.setForeground(Color.BLACK);
                 Window.mode = null;
             }
         }else if(source==edit){
             if(Window.mode!=Mode.EDIT){
-                edit.setForeground(Color.BLUE);
                 Window.mode = Mode.EDIT;
             }else{
-                edit.setForeground(Color.BLACK);
                 Window.mode = null;
                 CanvasPanel.selected=null;
                 for(Shape s: CanvasPanel.shapes){
@@ -239,110 +245,147 @@ class Window extends JFrame implements ActionListener{
             createColorPicker();
         }else if(source==save){
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileFilter(new VectorFilter());
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Only .vector files", "vector"));
+            fileChooser.setAcceptAllFileFilterUsed(false);
             if(fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
                 BufferedWriter bw;
-                try{
-                    bw = new BufferedWriter(new FileWriter(file.toString()));
+                if(getFileExtension(file).equals("vector")){
+                    try{
+                        bw = new BufferedWriter(new FileWriter(file.toString()));
 
-                    bw.write(getWidth() + "," + getHeight());
-                    bw.newLine();
-                    bw.write(CanvasPanel.shapes.size()+"");
-                    bw.newLine();
-                    for(Shape s: CanvasPanel.shapes){
-                        Color color = s.getColor();
-                        bw.write(s.getClass().getSimpleName());
+                        bw.write(getWidth() + "," + getHeight());
                         bw.newLine();
-                        bw.write(color.getRed()+","+color.getGreen()+","+color.getBlue()+","+color.getAlpha());
+                        bw.write(CanvasPanel.shapes.size()+"");
                         bw.newLine();
-                        ArrayList<DoublePoint> points = s.getPoints();
-                        bw.write(points.size()+"");
-                        bw.newLine();
-                        for(DoublePoint p: points){
-                            bw.write(p.getX()+","+p.getY());
+                        for(Shape s: CanvasPanel.shapes){
+                            Color color = s.getColor();
+                            bw.write(s.getClass().getSimpleName());
                             bw.newLine();
+                            bw.write(color.getRed()+","+color.getGreen()+","+color.getBlue()+","+color.getAlpha());
+                            bw.newLine();
+                            ArrayList<DoublePoint> points = s.getPoints();
+                            bw.write(points.size()+"");
+                            bw.newLine();
+                            for(DoublePoint p: points){
+                                bw.write(p.getX()+","+p.getY());
+                                bw.newLine();
+                            }
                         }
+                        bw.close();
+                        JOptionPane.showMessageDialog(this,"File saved successfuly");
+                    }catch(Exception ex){
+                        JOptionPane.showMessageDialog(this,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
                     }
-                    bw.close();
-                }catch(Exception ex){
-                    System.out.println(ex.getMessage());
+                }else{
+                    JOptionPane.showMessageDialog(this,"Unsupported filetype, use Vector's file (.vector) instead","Error",JOptionPane.ERROR_MESSAGE);
                 }
             }
         }else if(source==open){
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileFilter(new VectorFilter());
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Only .vector files", "vector"));
+            fileChooser.setAcceptAllFileFilterUsed(false);
             if(fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
                 BufferedReader br;
-                try{
-                    String line;
+                if(getFileExtension(file).equals("vector")){
+                    try{
+                        String line;
 
-                    br = new BufferedReader(new FileReader(file.toString()));
-                    CanvasPanel.shapes = new ArrayList<Shape>();
-                    CanvasPanel.selected = null;
-                    CanvasPanel.points = new ArrayList<DoublePoint>();
+                        br = new BufferedReader(new FileReader(file.toString()));
+                        CanvasPanel.shapes = new ArrayList<Shape>();
+                        CanvasPanel.selected = null;
+                        CanvasPanel.points = new ArrayList<DoublePoint>();
 
-                    if((line = br.readLine()) != null){
-                        String[] parts = line.split(",");
-                        int width = Integer.parseInt(parts[0]);
-                        int height = Integer.parseInt(parts[1]);
                         if((line = br.readLine()) != null){
-                            int n = Integer.parseInt(line);
-                            for(int i=0; i<n; i++){
-                                String shapeName = br.readLine();
+                            String[] parts = line.split(",");
+                            int width = Integer.parseInt(parts[0]);
+                            int height = Integer.parseInt(parts[1]);
+                            setSize(width,height);
+                            if((line = br.readLine()) != null){
+                                int n = Integer.parseInt(line);
+                                for(int i=0; i<n; i++){
+                                    String shapeName = br.readLine();
 
-                                parts = br.readLine().split(",");
-                                int r= Integer.parseInt(parts[0]);
-                                int g = Integer.parseInt(parts[1]);
-                                int b = Integer.parseInt(parts[2]);
-                                int a = Integer.parseInt(parts[3]);
-
-                                int k = Integer.parseInt(br.readLine());
-
-                                ArrayList<DoublePoint> points = new ArrayList<DoublePoint>();
-                                for(int j=0; j<k; j++){
                                     parts = br.readLine().split(",");
-                                    points.add(new DoublePoint(Double.parseDouble(parts[0]),Double.parseDouble(parts[01])));
-                                }
+                                    int r= Integer.parseInt(parts[0]);
+                                    int g = Integer.parseInt(parts[1]);
+                                    int b = Integer.parseInt(parts[2]);
+                                    int a = Integer.parseInt(parts[3]);
 
-                                Shape shape;
-                                switch(shapeName){
-                                    case "Rectangle":
-                                        shape = new Rectangle(points);
-                                        break;
-                                    case "Circle":
-                                        shape = new Circle(points);
-                                        break;
-                                    default:
-                                        shape = new Polygon(points);
-                                        break;
-                                }
-                                shape.setColor(new Color(r,g,b,a));
-                                shape.init();
+                                    int k = Integer.parseInt(br.readLine());
 
-                                CanvasPanel.shapes.add(shape);
+                                    ArrayList<DoublePoint> points = new ArrayList<DoublePoint>();
+                                    for(int j=0; j<k; j++){
+                                        parts = br.readLine().split(",");
+                                        points.add(new DoublePoint(Double.parseDouble(parts[0]),Double.parseDouble(parts[01])));
+                                    }
+
+                                    Shape shape;
+                                    switch(shapeName){
+                                        case "Rectangle":
+                                            shape = new Rectangle(points);
+                                            break;
+                                        case "Circle":
+                                            shape = new Circle(points);
+                                            break;
+                                        default:
+                                            shape = new Polygon(points);
+                                            break;
+                                    }
+                                    shape.setColor(new Color(r,g,b,a));
+                                    shape.init();
+
+                                    CanvasPanel.shapes.add(shape);
+                                }
                             }
+                            Window.canvas.repaint();
                         }
+                        br.close();
+                    }catch(Exception ex){
+                        JOptionPane.showMessageDialog(this,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
                     }
-                    while ((line = br.readLine()) != null) {
-        				System.out.println(line);
-        			}
-                    br.close();
-                }catch(Exception ex){
-                    System.out.println(ex.getMessage());
+                }else{
+                    JOptionPane.showMessageDialog(this,"Unsupported filetype, use Vector's file (.vector) instead","Error",JOptionPane.ERROR_MESSAGE);
                 }
             }
         }else if(source==export){
             JFileChooser fileChooser = new JFileChooser();
-            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-              File file = fileChooser.getSelectedFile();
-              //Export to png
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                BufferedImage image = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                Graphics g = image.getGraphics();
+                canvas.paint(g);
+                try{
+                    if(!ImageIO.write(image, "png", new File(fileChooser.getSelectedFile()+"/export"+System.currentTimeMillis()+".png"))){
+                        JOptionPane.showMessageDialog(this,"Fail to export your canvas","Error",JOptionPane.ERROR_MESSAGE);
+                    }
+                }catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                }
             }
         }else if(source==clear){
             CanvasPanel.shapes = new ArrayList<Shape>();
             CanvasPanel.selected = null;
             CanvasPanel.points = new ArrayList<DoublePoint>();
         }
+    }
+
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        try{
+            return name.substring(name.lastIndexOf(".") + 1);
+        }catch (Exception e) {
+            return "";
+        }
+        // String name = file.getName();
+        // String[] namePieces = name.split(".");
+        // System.out.println(name);
+        // System.out.println(namePieces.length);
+        // if(namePieces.length>0){
+        //     return namePieces[namePieces.length-1];
+        // }else{
+        //     return "";
+        // }
     }
 }

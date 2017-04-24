@@ -9,6 +9,11 @@ import java.awt.event.*;
 import java.lang.*;
 import java.util.ArrayList;
 
+/**
+*Class handling canvas i.e. draw, edit etc..
+*@author Maciej Stosio
+*@version 1.0
+*/
 class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener{
     private Graphics2D g2d;
     public static Shape selected;
@@ -38,23 +43,6 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
                         break;
                     }
                 }
-            }
-        });
-
-        //SHIFT
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SHIFT"), "shift press");
-        getActionMap().put("shift press", new AbstractAction(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // System.out.println("shift press");
-            }
-        });
-
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released SHIFT"), "shift release");
-        getActionMap().put("shift release", new AbstractAction(){
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //System.out.println("shift release");
             }
         });
     }
@@ -109,7 +97,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
         }else if(Window.mode==Mode.EDIT){
             if (SwingUtilities.isRightMouseButton(e) || e.isControlDown()){
                 if(selected!=null){
-                    JColorChooser chooser = new JColorChooser();
+                    JColorChooser chooser = new JColorChooser(selected.getColor());
                     AbstractColorChooserPanel[] panels = chooser.getChooserPanels();
                     ActionListener setColor = new ActionListener() {
                       public void actionPerformed(ActionEvent actionEvent) {
@@ -124,8 +112,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
                         }
                     }
 
-                    JColorChooser.createDialog(null, "Wybierz kolor", false, chooser, setColor , null).setVisible(true);
-
+                    JColorChooser.createDialog(null, "Choose a color", false, chooser, setColor , null).setVisible(true);
                 }
             }else{
                 for(int i = shapes.size()-1; i>=0; i--){
@@ -143,6 +130,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener, 
                         break;
                     }else{
                         shapes.get(i).unselect();
+                        if(selected==shapes.get(i)) selected=null;
                     }
                 }
             }

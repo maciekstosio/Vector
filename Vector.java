@@ -1,21 +1,17 @@
-/**
-*Prosty program do edycji grafiki. Umożliwiający tworzenie prostokątów, elips oraz wielokątów, zaznaczanie ich i edycję.
-*@author Maciej Stosio
-*@version 1.0
-*/
-
 //UI
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
 /**
-*Klasa startowa
+*Simple graphics editor. You can draw rectangles, circles and polygons then select and edit them.
+*@author Maciej Stosio
+*@version 1.0
 */
 public class Vector{
     /**
-    *Metoda uruchamiajaca program
-    *@param args Array of string
+    *Lunch the main window.
+    *@param args String[]
     */
     public static void main(String[] args){
         EventQueue.invokeLater(new Runnable(){

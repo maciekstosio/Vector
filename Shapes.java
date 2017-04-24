@@ -1,3 +1,9 @@
+/**
+*Shape clases that inherit after Shape abstract Class.
+*@author Maciej Stosio
+*@version 1.0
+*/
+
 //Graphics
 import java.awt.*;
 import java.awt.geom.*;
@@ -5,52 +11,6 @@ import java.awt.geom.*;
 //Other
 import java.util.ArrayList;
 
-abstract class Shape{
-    ArrayList<DoublePoint> points;
-    boolean selected=false;
-    Color color=Color.BLACK;
-    double zoom = 0.05;
-
-    public Shape(ArrayList<DoublePoint> p){
-        points=new ArrayList<DoublePoint>(p);
-    }
-
-    public void add(int x, int y){
-        points.add(new DoublePoint(x,y));
-    }
-
-    public boolean isSelected(){
-        return selected;
-    }
-
-    public void select(){
-        selected = true;
-    }
-
-    public void unselect(){
-        selected = false;
-    }
-
-    public void setColor(Color c){
-        color=c;
-    }
-
-    public Color getColor(){
-        return color;
-    }
-
-    public ArrayList<DoublePoint> getPoints(){
-        return points;
-    }
-
-    public abstract boolean valid();
-    public abstract boolean include(int x, int y);
-    public abstract void init();
-    public abstract void resize(int notch);
-    public abstract void move(int deltaX, int deltaY);
-    public abstract void draw(Graphics2D g2d);
-    public abstract void preview(Graphics2D g2d, int x, int y);
-}
 
 class Rectangle extends Shape{
     public double width,height,x,y;
@@ -70,7 +30,7 @@ class Rectangle extends Shape{
         Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 3, 1 }, 0);
         g2d.setColor(color);
         if(selected){
-            g2d.setColor(Color.MAGENTA);
+            g2d.setColor(new Color(255,0,255,128));
         }
         g2d.fillRect((int) Math.floor(x),(int) Math.floor(y), (int) Math.floor(width), (int) Math.floor(height));
     }
@@ -104,7 +64,7 @@ class Rectangle extends Shape{
             width=x;
             height=1;
         }
-        //TODO: update points after resize
+        points.get(1).setLocation(Math.min(points.get(0).getX(),points.get(1).getX())+width,Math.min(points.get(0).getY(),points.get(1).getY())+height);
     }
 
     public boolean valid(){
@@ -134,7 +94,7 @@ class Circle extends Shape{
         Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 3, 1 }, 0);
         g2d.setColor(color);
         if(selected){
-            g2d.setColor(Color.MAGENTA);
+            g2d.setColor(new Color(255,0,255,128));
         }
         g2d.fillOval((int) Math.floor(x),(int) Math.floor(y),(int) Math.floor(dx*2),(int) Math.floor(dy*2));
     }
@@ -169,7 +129,7 @@ class Circle extends Shape{
             dx=x;
             dy=1;
         }
-        //TODO: update points after resize
+        points.get(1).setLocation(Math.min(points.get(0).getX(),points.get(1).getX())+dx,Math.min(points.get(0).getY(),points.get(1).getY())+dy);
     }
 
     public boolean include(int currentX, int currentY){
@@ -197,7 +157,7 @@ class Polygon extends Shape{
 
         g2d.setColor(color);
         if(selected){
-            g2d.setColor(Color.MAGENTA);
+            g2d.setColor(new Color(255,0,255,128));
         }
         g2d.fill(path);
     }

@@ -1,0 +1,222 @@
+\hypertarget{class_shape}{}\section{Shape Class Reference}
+\label{class_shape}\index{Shape@{Shape}}
+
+
+Inherited by Circle, Polygon, and Rectangle.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_shape_a3d76b5d801383515923d2f9f800d0d6c}{Shape} ()
+\item 
+\hyperlink{class_shape_a077daea39f5e67150f6ca1b89b6fc6fd}{Shape} (Array\+List$<$ \hyperlink{class_double_point}{Double\+Point} $>$ p)
+\item 
+void \hyperlink{class_shape_a32626b5ccab1d89c6724af95121dc125}{add} (double x, double y)
+\item 
+boolean \hyperlink{class_shape_aa1c3adc5bee37da4d5972965caaec344}{is\+Selected} ()
+\item 
+void \hyperlink{class_shape_afa9a615b704d91064260ea688dd625f5}{select} ()
+\item 
+void \hyperlink{class_shape_a5fda5181466313db27d010bbf7bb50a4}{unselect} ()
+\item 
+void \hyperlink{class_shape_a49e29c1da103be18d279993034de99c6}{set\+Color} (Color c)
+\item 
+Color \hyperlink{class_shape_a4271dba03c30547a4e0c87418cc07bf8}{get\+Color} ()
+\item 
+Array\+List$<$ \hyperlink{class_double_point}{Double\+Point} $>$ \hyperlink{class_shape_acced47c85afcddf20b66f1820b86584a}{get\+Points} ()
+\item 
+abstract boolean \hyperlink{class_shape_a8b64c43dfba956f5586336c460735e1d}{valid} ()
+\item 
+abstract boolean \hyperlink{class_shape_ada4e95f3d5340e22d9f51db227b16daa}{include} (int x, int y)
+\item 
+abstract void \hyperlink{class_shape_a2b1385526d1687f2bf2c382aab40cef4}{init} ()
+\item 
+abstract void \hyperlink{class_shape_a2416754be161196c88e0fa1816e08c0c}{resize} (int n)
+\item 
+abstract void \hyperlink{class_shape_ac6c07cfa25f740b78af1c212d111fb1e}{move} (int deltaX, int deltaY)
+\item 
+abstract void \hyperlink{class_shape_a49dd492d72e51ebff5323f12061b970e}{draw} (Graphics2D g2d)
+\item 
+abstract void \hyperlink{class_shape_aeb76c0ca3c4e20d02d172ba4ce83bd2d}{preview} (Graphics2D g2d, int x, int y)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Abstract class shape and subclasses defining shapes. \begin{DoxyAuthor}{Author}
+Maciej Stosio 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1.\+0 
+\end{DoxyVersion}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_shape_a3d76b5d801383515923d2f9f800d0d6c}\label{class_shape_a3d76b5d801383515923d2f9f800d0d6c}} 
+\index{Shape@{Shape}!Shape@{Shape}}
+\index{Shape@{Shape}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{Shape()}{Shape()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Shape.\+Shape (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Create shape without any points. \mbox{\Hypertarget{class_shape_a077daea39f5e67150f6ca1b89b6fc6fd}\label{class_shape_a077daea39f5e67150f6ca1b89b6fc6fd}} 
+\index{Shape@{Shape}!Shape@{Shape}}
+\index{Shape@{Shape}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{Shape()}{Shape()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily Shape.\+Shape (\begin{DoxyParamCaption}\item[{Array\+List$<$ \hyperlink{class_double_point}{Double\+Point} $>$}]{p }\end{DoxyParamCaption})}
+
+Create new shape based on given points. 
+\begin{DoxyParams}{Parameters}
+{\em p} & list of \hyperlink{class_double_point}{Double\+Point}\textquotesingle{}s \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_shape_a32626b5ccab1d89c6724af95121dc125}\label{class_shape_a32626b5ccab1d89c6724af95121dc125}} 
+\index{Shape@{Shape}!add@{add}}
+\index{add@{add}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{add()}{add()}}
+{\footnotesize\ttfamily void Shape.\+add (\begin{DoxyParamCaption}\item[{double}]{x,  }\item[{double}]{y }\end{DoxyParamCaption})}
+
+Create shape without any points. 
+\begin{DoxyParams}{Parameters}
+{\em x} & double number of x coordinate \\
+\hline
+{\em y} & double number of y coordinate \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_shape_a49dd492d72e51ebff5323f12061b970e}\label{class_shape_a49dd492d72e51ebff5323f12061b970e}} 
+\index{Shape@{Shape}!draw@{draw}}
+\index{draw@{draw}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily abstract void Shape.\+draw (\begin{DoxyParamCaption}\item[{Graphics2D}]{g2d }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [abstract]}}
+
+Draw shape on given canvas 
+\begin{DoxyParams}{Parameters}
+{\em g2d} & Graphics2D context \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_shape_a4271dba03c30547a4e0c87418cc07bf8}\label{class_shape_a4271dba03c30547a4e0c87418cc07bf8}} 
+\index{Shape@{Shape}!get\+Color@{get\+Color}}
+\index{get\+Color@{get\+Color}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{get\+Color()}{getColor()}}
+{\footnotesize\ttfamily Color Shape.\+get\+Color (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Get color of shape. \begin{DoxyReturn}{Returns}
+instance of Color class 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_shape_acced47c85afcddf20b66f1820b86584a}\label{class_shape_acced47c85afcddf20b66f1820b86584a}} 
+\index{Shape@{Shape}!get\+Points@{get\+Points}}
+\index{get\+Points@{get\+Points}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{get\+Points()}{getPoints()}}
+{\footnotesize\ttfamily Array\+List$<$\hyperlink{class_double_point}{Double\+Point}$>$ Shape.\+get\+Points (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Get all points in shape \begin{DoxyReturn}{Returns}
+list of \hyperlink{class_double_point}{Double\+Point} 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_shape_ada4e95f3d5340e22d9f51db227b16daa}\label{class_shape_ada4e95f3d5340e22d9f51db227b16daa}} 
+\index{Shape@{Shape}!include@{include}}
+\index{include@{include}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{include()}{include()}}
+{\footnotesize\ttfamily abstract boolean Shape.\+include (\begin{DoxyParamCaption}\item[{int}]{x,  }\item[{int}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [abstract]}}
+
+Check if given point is inside the shape. 
+\begin{DoxyParams}{Parameters}
+{\em x} & x coordinate as integer \\
+\hline
+{\em y} & y coordinate as integer \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if it\textquotesingle{}s inside, false if it\textquotesingle{}s not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_shape_a2b1385526d1687f2bf2c382aab40cef4}\label{class_shape_a2b1385526d1687f2bf2c382aab40cef4}} 
+\index{Shape@{Shape}!init@{init}}
+\index{init@{init}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily abstract void Shape.\+init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [abstract]}}
+
+Init shape -\/ generate information like width, height, radius. \mbox{\Hypertarget{class_shape_aa1c3adc5bee37da4d5972965caaec344}\label{class_shape_aa1c3adc5bee37da4d5972965caaec344}} 
+\index{Shape@{Shape}!is\+Selected@{is\+Selected}}
+\index{is\+Selected@{is\+Selected}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{is\+Selected()}{isSelected()}}
+{\footnotesize\ttfamily boolean Shape.\+is\+Selected (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Return wheter shape is selected or not. \begin{DoxyReturn}{Returns}
+boolean 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_shape_ac6c07cfa25f740b78af1c212d111fb1e}\label{class_shape_ac6c07cfa25f740b78af1c212d111fb1e}} 
+\index{Shape@{Shape}!move@{move}}
+\index{move@{move}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{move()}{move()}}
+{\footnotesize\ttfamily abstract void Shape.\+move (\begin{DoxyParamCaption}\item[{int}]{deltaX,  }\item[{int}]{deltaY }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [abstract]}}
+
+Translate shape of vector \mbox{[}x,y\mbox{]}. 
+\begin{DoxyParams}{Parameters}
+{\em deltaX} & x vector value as integer \\
+\hline
+{\em deltaY} & y vector value as integer \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_shape_aeb76c0ca3c4e20d02d172ba4ce83bd2d}\label{class_shape_aeb76c0ca3c4e20d02d172ba4ce83bd2d}} 
+\index{Shape@{Shape}!preview@{preview}}
+\index{preview@{preview}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{preview()}{preview()}}
+{\footnotesize\ttfamily abstract void Shape.\+preview (\begin{DoxyParamCaption}\item[{Graphics2D}]{g2d,  }\item[{int}]{x,  }\item[{int}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [abstract]}}
+
+Preview shape based on given points and another, temporary point. 
+\begin{DoxyParams}{Parameters}
+{\em g2d} & Graphics2D context \\
+\hline
+{\em x} & x coordinate of temporary point as integer \\
+\hline
+{\em y} & y coordinate of temporary point as integer \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_shape_a2416754be161196c88e0fa1816e08c0c}\label{class_shape_a2416754be161196c88e0fa1816e08c0c}} 
+\index{Shape@{Shape}!resize@{resize}}
+\index{resize@{resize}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{resize()}{resize()}}
+{\footnotesize\ttfamily abstract void Shape.\+resize (\begin{DoxyParamCaption}\item[{int}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [abstract]}}
+
+Scal shape of n unit\textquotesingle{}s 
+\begin{DoxyParams}{Parameters}
+{\em n} & unit\textquotesingle{}s as integer \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_shape_afa9a615b704d91064260ea688dd625f5}\label{class_shape_afa9a615b704d91064260ea688dd625f5}} 
+\index{Shape@{Shape}!select@{select}}
+\index{select@{select}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{select()}{select()}}
+{\footnotesize\ttfamily void Shape.\+select (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Select the shape. \mbox{\Hypertarget{class_shape_a49e29c1da103be18d279993034de99c6}\label{class_shape_a49e29c1da103be18d279993034de99c6}} 
+\index{Shape@{Shape}!set\+Color@{set\+Color}}
+\index{set\+Color@{set\+Color}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{set\+Color()}{setColor()}}
+{\footnotesize\ttfamily void Shape.\+set\+Color (\begin{DoxyParamCaption}\item[{Color}]{c }\end{DoxyParamCaption})}
+
+Set color of shape. 
+\begin{DoxyParams}{Parameters}
+{\em c} & instance of Color class \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_shape_a5fda5181466313db27d010bbf7bb50a4}\label{class_shape_a5fda5181466313db27d010bbf7bb50a4}} 
+\index{Shape@{Shape}!unselect@{unselect}}
+\index{unselect@{unselect}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{unselect()}{unselect()}}
+{\footnotesize\ttfamily void Shape.\+unselect (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Unselect the shape. \mbox{\Hypertarget{class_shape_a8b64c43dfba956f5586336c460735e1d}\label{class_shape_a8b64c43dfba956f5586336c460735e1d}} 
+\index{Shape@{Shape}!valid@{valid}}
+\index{valid@{valid}!Shape@{Shape}}
+\subsubsection{\texorpdfstring{valid()}{valid()}}
+{\footnotesize\ttfamily abstract boolean Shape.\+valid (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [abstract]}}
+
+Check if shape is valid i.\+e. height can\textquotesingle{}t be 0. \begin{DoxyReturn}{Returns}
+True if it\textquotesingle{}s valid, false if it\textquotesingle{}s not 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+Shape.\+java\end{DoxyCompactItemize}

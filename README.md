@@ -5,7 +5,6 @@ This is simple vector graphics editor. You can create rectangle, circle and poly
 <br />
 <br />
 **Install**
-<br />
 ```
 javac *.java
 java Vector
